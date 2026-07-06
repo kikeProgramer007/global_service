@@ -1,0 +1,333 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-dark-deep: #030712;
+  --color-dark-navy: #080f25;
+  --color-dark-blue: #0f1c3f;
+  --color-brand-cyan: #00f0ff;
+  --color-brand-blue: #3a86ff;
+  --color-brand-indigo: #4f46e5;
+  
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+/* Custom Utilities */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.1);
+  transform: translateY(-4px);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+}
+
+.text-glow-blue {
+  text-shadow: 0 0 15px rgba(58, 134, 255, 0.5);
+}
+
+.glow-border {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #030712;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0f1c3f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1c2541;
+  border-color: #00f0ff;
+}
+
+/* ==========================================
+   Light Mode CSS Overrides (Polished Slate)
+   ========================================== */
+
+#root-app-container.light {
+  --color-dark-deep: #f8fafc;
+  --color-dark-navy: #ffffff;
+  --color-dark-blue: #f1f5f9;
+  --color-brand-cyan: #2563eb;       /* Royal Blue */
+  --color-brand-blue: #1d4ed8;       /* Deep Royal */
+  --color-brand-indigo: #4338ca;     /* Royal Indigo */
+  color: #1e293b !important;
+  background-color: #f8fafc !important;
+}
+
+/* Prevent dark/neon background glows in light mode */
+#root-app-container.light .pointer-events-none.rounded-full {
+  background-color: rgba(37, 99, 235, 0.03) !important;
+}
+
+/* Headings Contrast */
+#root-app-container.light h1,
+#root-app-container.light h2,
+#root-app-container.light h3,
+#root-app-container.light h4,
+#root-app-container.light h5,
+#root-app-container.light h6 {
+  color: #0f172a !important;
+}
+
+/* Global Text Remapping for High Readability */
+#root-app-container.light .text-white {
+  color: #0f172a !important;
+}
+#root-app-container.light .text-slate-400 {
+  color: #475569 !important;
+}
+#root-app-container.light .text-slate-300 {
+  color: #334155 !important;
+}
+#root-app-container.light .text-slate-500 {
+  color: #64748b !important;
+}
+#root-app-container.light .text-slate-200 {
+  color: #1e293b !important;
+}
+#root-app-container.light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+/* Preserve active items and state colors */
+#root-app-container.light .text-brand-cyan {
+  color: #2563eb !important;
+}
+#root-app-container.light .text-brand-blue {
+  color: #1d4ed8 !important;
+}
+
+/* Glass Panels to Clean Corporate Cards */
+#root-app-container.light .glass-panel {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+}
+
+#root-app-container.light .glass-panel-hover:hover {
+  background: #ffffff !important;
+  border-color: #3a86ff !important;
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.08) !important;
+}
+
+/* Header Adjustments */
+#root-app-container.light header {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+#root-app-container.light header button.text-slate-400 {
+  color: #475569 !important;
+}
+#root-app-container.light header button.text-slate-400:hover {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+}
+#root-app-container.light header button.text-brand-cyan {
+  color: #2563eb !important;
+  background-color: #eff6ff !important;
+}
+#root-app-container.light header span.text-white {
+  color: #0f172a !important;
+}
+#root-app-container.light header .bg-dark-navy\/95 {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Input Fields and Selectors */
+#root-app-container.light input,
+#root-app-container.light textarea,
+#root-app-container.light select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+#root-app-container.light input::placeholder,
+#root-app-container.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+#root-app-container.light input:focus,
+#root-app-container.light textarea:focus,
+#root-app-container.light select:focus {
+  border-color: #2563eb !important;
+  outline: none !important;
+}
+
+/* Card, list background overrides */
+#root-app-container.light .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+
+#root-app-container.light .bg-slate-900 {
+  background-color: #ffffff !important;
+}
+
+#root-app-container.light .bg-slate-900\/10,
+#root-app-container.light .bg-slate-900\/20,
+#root-app-container.light .bg-slate-900\/30,
+#root-app-container.light .bg-slate-900\/40,
+#root-app-container.light .bg-slate-900\/50,
+#root-app-container.light .bg-slate-900\/60,
+#root-app-container.light .bg-slate-950\/40,
+#root-app-container.light .bg-slate-950\/20,
+#root-app-container.light .bg-dark-navy,
+#root-app-container.light .bg-dark-blue {
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+#root-app-container.light .bg-white\/5,
+#root-app-container.light .bg-white\/10,
+#root-app-container.light .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Border color mapping */
+#root-app-container.light .border-white\/5,
+#root-app-container.light .border-white\/10,
+#root-app-container.light .border-white\/15,
+#root-app-container.light .border-white\/20,
+#root-app-container.light .border-white\/30,
+#root-app-container.light .border-white\/40,
+#root-app-container.light .border-brand-cyan\/10,
+#root-app-container.light .border-brand-cyan\/20,
+#root-app-container.light .border-brand-cyan\/30 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Accent boxes & service colors */
+#root-app-container.light .bg-brand-cyan\/5 {
+  background-color: rgba(37, 99, 235, 0.06) !important;
+}
+#root-app-container.light .border-brand-cyan\/20 {
+  border-color: rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Secondary Button Reset */
+#root-app-container.light button.bg-white\/5 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+#root-app-container.light button.bg-white\/5:hover {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Hero & Gradient Buttons: Keep white text readable on vibrant gradients */
+#root-app-container.light button.bg-gradient-to-r,
+#root-app-container.light button.bg-gradient-to-r *,
+#root-app-container.light a.bg-gradient-to-r,
+#root-app-container.light a.bg-gradient-to-r *,
+#root-app-container.light button.bg-green-600,
+#root-app-container.light button.bg-green-600 *,
+#root-app-container.light a.bg-green-600,
+#root-app-container.light a.bg-green-600 *,
+#root-app-container.light button.bg-gradient-to-r span,
+#root-app-container.light a.bg-gradient-to-r span,
+#root-app-container.light button.bg-green-600 span {
+  color: #ffffff !important;
+}
+
+#root-app-container.light button.bg-gradient-to-r svg,
+#root-app-container.light a.bg-gradient-to-r svg,
+#root-app-container.light button.bg-green-600 svg,
+#root-app-container.light a.bg-green-600 svg {
+  color: #ffffff !important;
+}
+
+/* Polished service card icon container in light mode */
+#root-app-container.light .bg-slate-950\/50 {
+  background-color: rgba(37, 99, 235, 0.08) !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+  color: #2563eb !important;
+}
+
+/* No unreadable glow shadows in light mode */
+#root-app-container.light .text-glow-cyan,
+#root-app-container.light .text-glow-blue {
+  text-shadow: none !important;
+}
+
+/* Contact Blueprint Map */
+#root-app-container.light #contacto-view .relative.rounded-3xl.overflow-hidden {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+#root-app-container.light #contacto-view .relative.rounded-3xl.overflow-hidden .absolute.inset-0.opacity-15 {
+  opacity: 0.25 !important;
+  background-image: radial-gradient(circle, #2563eb 1.5px, transparent 1.5px) !important;
+}
+
+/* DevToolbar visual alignment */
+#root-app-container.light #dev-toolbar {
+  background-color: #ffffff !important;
+  border-top-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+/* Chat container adaptation */
+#root-app-container.light #root-app-container .bg-slate-950 {
+  background-color: #ffffff !important;
+}
+
+/* Scrollbars */
+#root-app-container.light ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+#root-app-container.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+}
+#root-app-container.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+

@@ -1,0 +1,6 @@
+{
+  "name": "Global Service - Soluciones Tecnológicas",
+  "description": "Plataforma web de Global Service, líderes en desarrollo de software, soluciones con inteligencia artificial, soporte técnico especializado y servicios tecnológicos avanzados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
