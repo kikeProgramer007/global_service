@@ -20,6 +20,7 @@ const mediaRoutes = require('./routes/media.routes');
 const contactRoutes = require('./routes/contact.routes');
 const quoteRoutes = require('./routes/quote.routes');
 const settingRoutes = require('./routes/setting.routes');
+const teamRoutes = require('./routes/team.routes');
 
 // Import authentication check
 const authMiddleware = require('./middlewares/auth.middleware');
@@ -63,6 +64,7 @@ app.use('/api/admin/media', authMiddleware, mediaRoutes);
 app.use('/api/admin/contact-messages', authMiddleware, contactRoutes);
 app.use('/api/admin/quotes', authMiddleware, quoteRoutes);
 app.use('/api/admin/settings', authMiddleware, settingRoutes);
+app.use('/api/admin/team', authMiddleware, teamRoutes);
 
 // Handle 404
 app.use((req, res, next) => {

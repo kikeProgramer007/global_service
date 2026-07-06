@@ -20,6 +20,7 @@ import {
 import { IMAGES } from '../../assets';
 import { Project, ActivePage } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCMS } from '../../context/CMSContext';
 import LazyImage from '../LazyImage';
 
 interface PortafolioViewProps {
@@ -28,6 +29,7 @@ interface PortafolioViewProps {
 
 export default function PortafolioView({ onPageChange }: PortafolioViewProps) {
   const { t, language } = useLanguage();
+  const { projects: cmsProjects } = useCMS();
   const [filter, setFilter] = useState<'all' | 'software' | 'mobile' | 'ia' | 'website'>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,74 +50,17 @@ export default function PortafolioView({ onPageChange }: PortafolioViewProps) {
     };
   }, [selectedProject]);
 
-  const projects: Project[] = [
-    {
-      id: 'p1',
-      title: language === 'es' ? 'Sistema de Ventas y Facturación' : 'Sales and Invoicing System',
-      category: 'software',
-      image: IMAGES.project1,
-      description: language === 'es'
-        ? 'Plataforma web integral de administración comercial, control de cajas chicas, impresión de facturas electrónicas y control de comisiones.'
-        : 'Comprehensive web commerce administration platform, petty cash control, electronic invoice printing, and commission tracking.',
-      client: 'Distribuidora Norte Bolivia',
-      tech: ['React.js', 'Node.js', 'PostgreSQL', 'Tailwind']
-    },
-    {
-      id: 'p2',
-      title: language === 'es' ? 'App Móvil de Delivery Rápido' : 'Fast Delivery Mobile App',
-      category: 'mobile',
-      image: IMAGES.project2,
-      description: language === 'es'
-        ? 'Aplicación móvil de logística con localización en tiempo real para repartidores, panel administrativo de pedidos y pasarela de pago QR integrada.'
-        : 'Mobile logistics application with real-time location tracking for drivers, an order management panel, and integrated QR payments.',
-      client: 'FastFood Express',
-      tech: ['React Native', 'Firebase', 'Google Maps API']
-    },
-    {
-      id: 'p3',
-      title: language === 'es' ? 'Chatbot Inteligente de WhatsApp' : 'Intelligent WhatsApp Chatbot',
-      category: 'ia',
-      image: IMAGES.project3,
-      description: language === 'es'
-        ? 'Soporte conversacional automatizado 24/7 entrenado con la base de conocimientos inmobiliaria de la empresa para captar prospectos calificados.'
-        : 'Automated 24/7 conversational support trained on the company\'s real estate knowledge base to capture qualified leads.',
-      client: 'Inmobiliaria Santa Cruz',
-      tech: ['Python', 'OpenAI API', 'Node.js', 'Meta Cloud API']
-    },
-    {
-      id: 'p4',
-      title: language === 'es' ? 'Plataforma ERP Metalúrgica' : 'Metallurgical ERP Platform',
-      category: 'software',
-      image: IMAGES.project4,
-      description: language === 'es'
-        ? 'Sistemas unificado para el seguimiento de compras de materia prima, planificación de producción industrial, nóminas y estados de resultados.'
-        : 'Unified system for raw materials purchasing, industrial production planning, payroll, and income statements.',
-      client: 'Metalúrgica Oriente S.A.',
-      tech: ['Laravel', 'MySQL', 'Bootstrap', 'AWS']
-    },
-    {
-      id: 'p5',
-      title: language === 'es' ? 'Sitio Web Corporativo Autogestionable' : 'Self-Managed Corporate Website',
-      category: 'website',
-      image: IMAGES.project5,
-      description: language === 'es'
-        ? 'Portal corporativo responsive de alto rendimiento con optimización SEO, blog corporativo y panel administrativo de contenidos.'
-        : 'High-performance responsive corporate portal with SEO optimization, a corporate blog, and content management panel.',
-      client: 'Clínica Dental DentalSano',
-      tech: ['React.js', 'Vite', 'Tailwind', 'Sanity CMS']
-    },
-    {
-      id: 'p6',
-      title: language === 'es' ? 'Automatización de Pipelines Financieros' : 'Financial Pipeline Automation',
-      category: 'ia',
-      image: IMAGES.project6,
-      description: language === 'es'
-        ? 'Flujo automático sin código que extrae extractos bancarios desde PDFs, los clasifica semánticamente con IA y los sincroniza con la contabilidad.'
-        : 'No-code automated workflow that extracts bank statements from PDFs, semantically classifies them using AI, and syncs with accounting.',
-      client: 'Finanzas Bolivia S.R.L.',
-      tech: ['N8N', 'Python', 'Google Cloud Storage', 'Gemini API']
-    }
-  ];
+  const projects: Project[] = cmsProjects
+    .filter((p) => p.status === 'publicado')
+    .map((p) => ({
+      id: p.id,
+      title: language === 'es' ? p.titleEs : p.titleEn,
+      category: p.category,
+      image: p.image || IMAGES.project1,
+      description: language === 'es' ? p.descriptionEs : p.descriptionEn,
+      client: p.client,
+      tech: p.tech,
+    }));
 
   const filteredProjects = filter === 'all' 
     ? projects 

@@ -135,7 +135,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/public/services?category=desarrollo-software&featured=true&search=CRM",
+							"raw": "{{base_url}}/api/public/services?category=servicio-tecnico&page=1&limit=12&featured=true&search=CRM",
 							"host": [
 								"{{base_url}}"
 							],
@@ -159,10 +159,20 @@
 									"key": "search",
 									"value": "CRM",
 									"description": "Filtro por palabra clave en título o descripción (opcional)"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número de página (opcional, default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "12",
+									"description": "Cantidad por página (opcional, default: 12)"
 								}
 							]
 						},
-						"description": "Obtiene la lista de servicios activos para el portal público."
+						"description": "Obtiene la lista paginada de servicios activos para el portal público. Incluye total, page, limit y totalPages en la respuesta."
 					},
 					"response": []
 				},
@@ -329,6 +339,26 @@
 					"response": []
 				},
 				{
+					"name": "Categorías del Blog",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/blog-categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"blog-categories"
+							]
+						},
+						"description": "Retorna las categorías activas del blog."
+					},
+					"response": []
+				},
+				{
 					"name": "Testimonios Activos",
 					"request": {
 						"method": "GET",
@@ -412,6 +442,26 @@
 							]
 						},
 						"description": "Retorna un diccionario clave-valor listo para su consumo con toda la información de contacto e identidad de la empresa."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Equipo (Team)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/team",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"team"
+							]
+						},
+						"description": "Retorna los miembros activos del equipo corporativo para la página Nosotros."
 					},
 					"response": []
 				},
@@ -1034,6 +1084,36 @@
 							"response": []
 						},
 						{
+							"name": "Crear o Actualizar Configuración (Upsert)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"key\": \"page.nosotros.hero\",\n  \"value\": \"{\\\"titleEs\\\":\\\"Nosotros\\\",\\\"titleEn\\\":\\\"About Us\\\"}\",\n  \"group\": \"pages\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/settings/upsert",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"settings",
+										"upsert"
+									]
+								},
+								"description": "Crea o actualiza una configuración por clave. Usado por el CMS para contenido de páginas."
+							},
+							"response": []
+						},
+						{
 							"name": "Actualizar Valor Configuración",
 							"request": {
 								"method": "PUT",
@@ -1057,6 +1137,251 @@
 										"admin",
 										"settings",
 										"company.name"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Equipo (Team)",
+					"item": [
+						{
+							"name": "Listar Miembros del Equipo",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/team?page=1&limit=20&search=",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"team"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "search",
+											"value": ""
+										}
+									]
+								},
+								"description": "Lista paginada de miembros del equipo para el panel administrativo."
+							},
+							"response": []
+						},
+						{
+							"name": "Detalle Miembro del Equipo",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/team/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"team",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Crear Miembro del Equipo",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Juan Pérez\",\n  \"roleEs\": \"Director Técnico\",\n  \"roleEn\": \"Technical Director\",\n  \"bioEs\": \"Especialista en infraestructura IT.\",\n  \"bioEn\": \"IT infrastructure specialist.\",\n  \"imageUrl\": \"/uploads/images/team-juan.jpg\",\n  \"active\": true,\n  \"order\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/team",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"team"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Actualizar Miembro del Equipo",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Juan Pérez\",\n  \"roleEs\": \"Director Técnico Senior\",\n  \"roleEn\": \"Senior Technical Director\",\n  \"active\": true,\n  \"order\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/team/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"team",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar Miembro del Equipo",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/team/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"team",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Cotizaciones (Quotes)",
+					"item": [
+						{
+							"name": "Listar Cotizaciones",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/quotes?page=1&limit=10&status=new",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"quotes"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "status",
+											"value": "new"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Detalle Cotización (Auto marcar Revisado)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/quotes/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"quotes",
+										"1"
+									]
+								},
+								"description": "Obtiene el detalle de una cotización. Si su estado era 'new', cambia automáticamente a 'reviewed'."
+							},
+							"response": []
+						},
+						{
+							"name": "Actualizar Estado Cotización",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"closed\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/quotes/1/status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"quotes",
+										"1",
+										"status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar Cotización",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/quotes/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"quotes",
+										"1"
 									]
 								}
 							},

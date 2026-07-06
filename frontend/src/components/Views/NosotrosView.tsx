@@ -29,8 +29,18 @@ import { useCMS } from '../../context/CMSContext';
 
 export default function NosotrosView() {
   const { t, language } = useLanguage();
-  const { pageContents } = useCMS();
+  const { pageContents, teamMembers } = useCMS();
   const nosotrosContent = pageContents.nosotros;
+
+  const team = teamMembers
+    .filter((m) => m.status === 'active')
+    .sort((a, b) => a.order - b.order)
+    .map((m) => ({
+      name: m.name,
+      role: language === 'es' ? m.roleEs : m.roleEn,
+      image: m.image,
+      description: language === 'es' ? m.bioEs : m.bioEn,
+    }));
 
   const values = [
     { 
@@ -75,41 +85,6 @@ export default function NosotrosView() {
         : 'We foster a multidisciplinary collaboration environment to provide comprehensive support for complex problems.', 
       icon: UsersRound 
     },
-  ];
-
-  const team = [
-    {
-      name: 'Juan Pablo A.',
-      role: 'CEO & Founder',
-      image: IMAGES.teamLeader,
-      description: language === 'es'
-        ? 'Ingeniero de Sistemas especialista en Arquitectura Cloud y Ciberseguridad. Con más de 10 años impulsando soluciones integrales.'
-        : 'Systems Engineer specializing in Cloud Architecture and Cybersecurity. Over 10 years driving comprehensive solutions.'
-    },
-    {
-      name: 'Andres C.',
-      role: language === 'es' ? 'Gerente de Proyectos' : 'Project Manager',
-      image: IMAGES.teamDeveloper,
-      description: language === 'es'
-        ? 'Especialista en metodologías ágiles (Scrum Master). Responsable de garantizar entregas perfectas y comunicación fluida.'
-        : 'Specialist in agile methodologies (Scrum Master). Responsible for ensuring perfect deliveries and smooth communication.'
-    },
-    {
-      name: 'Lidia F.',
-      role: language === 'es' ? 'Líder de Desarrollo' : 'Development Lead',
-      image: IMAGES.teamDesigner,
-      description: language === 'es'
-        ? 'Desarrolladora Full-Stack experta en arquitecturas de software modernas e integración avanzada de modelos de lenguaje (IA).'
-        : 'Full-Stack Developer expert in modern software architectures and advanced integration of language models (AI).'
-    },
-    {
-      name: 'Sofia G.',
-      role: language === 'es' ? 'Coordinadora de Operaciones' : 'Operations Coordinator',
-      image: IMAGES.teamMarketing,
-      description: language === 'es'
-        ? 'Especialista en soporte al cliente e ITIL. Coordina la logística y el equipo de servicio técnico en hardware.'
-        : 'Customer Support and ITIL specialist. Coordinates logistics and the hardware technical service team.'
-    }
   ];
 
   const stats = [
@@ -293,8 +268,8 @@ export default function NosotrosView() {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {team.map((member, idx) => (
-            <div key={idx} className="glass-panel group rounded-2xl border border-white/5 bg-slate-900/30 overflow-hidden hover:border-brand-cyan/30 transition-all duration-300">
+          {team.map((member) => (
+            <div key={member.name} className="glass-panel group rounded-2xl border border-white/5 bg-slate-900/30 overflow-hidden hover:border-brand-cyan/30 transition-all duration-300">
               <div className="relative overflow-hidden h-64">
                 <img 
                   src={member.image} 

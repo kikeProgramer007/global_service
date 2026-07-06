@@ -45,12 +45,12 @@ export default function BlogView() {
   }, [selectedPost]);
 
   const posts: BlogPost[] = cmsBlogs
-    .filter(b => b.status === 'active')
+    .filter(b => b.status === 'publicado')
     .map(b => ({
       id: b.id,
       title: language === 'es' ? b.titleEs : b.titleEn,
-      category: b.category,
-      date: b.date,
+      category: language === 'es' ? b.categoryEs : b.categoryEn,
+      date: language === 'es' ? b.dateEs : b.dateEn,
       readTime: language === 'es' ? b.readTimeEs : b.readTimeEn,
       image: b.image || IMAGES.blog1,
       summary: language === 'es' ? b.summaryEs : b.summaryEn,

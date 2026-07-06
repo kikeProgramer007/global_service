@@ -9,8 +9,6 @@ import { MessageSquare, X, Send, Bot, Sparkles, Phone, Laptop, Code, Brain } fro
 
 import Header from './components/Header';
 import Footer from './components/Footer';
-import DevToolbar from './components/DevToolbar';
-
 import HomeView from './components/Views/HomeView';
 import NosotrosView from './components/Views/NosotrosView';
 import ServicioTecnicoView from './components/Views/ServicioTecnicoView';
@@ -191,9 +189,6 @@ export default function App() {
 
         {/* Dynamic Footer */}
         {activePage !== ActivePage.Admin && <Footer onPageChange={handlePageChange} />}
-
-        {/* Evaluator Debugger Console Bar */}
-        <DevToolbar activePage={activePage} onPageChange={handlePageChange} />
 
         {/* Floating Buttons: WhatsApp & AI Chat */}
         {activePage !== ActivePage.Admin && (

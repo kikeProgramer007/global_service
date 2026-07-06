@@ -15,9 +15,11 @@ import {
   DollarSign 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCMS } from '../../context/CMSContext';
 
 export default function CotizacionView() {
   const { t, language } = useLanguage();
+  const { submitQuote } = useCMS();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
@@ -31,6 +33,8 @@ export default function CotizacionView() {
   });
   const [estimatedCost, setEstimatedCost] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [validationError, setValidationError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -109,9 +113,30 @@ export default function CotizacionView() {
     setStep(step - 1);
   };
 
-  const handleFinish = (e: React.FormEvent) => {
+  const handleFinish = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsCompleted(true);
+    if (!formData.name || !formData.email) {
+      setValidationError(language === 'es' ? 'Nombre y correo son obligatorios.' : 'Name and email are required.');
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmitError('');
+    try {
+      await submitQuote({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        solutionType: formData.serviceType,
+        features: formData.features,
+        approxCost: estimatedCost,
+        notes: `Empresa: ${formData.company || 'Particular'}, Alcance: ${formData.projectScope}, Plazo: ${formData.timeline}`,
+      });
+      setIsCompleted(true);
+    } catch {
+      setSubmitError(language === 'es' ? 'Error al enviar la cotización.' : 'Failed to submit quote.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const buildWhatsAppLink = () => {

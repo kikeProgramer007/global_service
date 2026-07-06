@@ -345,6 +345,9 @@ exports.deleteService = async (req, res, next) => {
 exports.getPublicServices = async (req, res, next) => {
   try {
     const { category, featured, search } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
     const whereClause = { active: true };
 
     if (search) {
@@ -359,24 +362,31 @@ exports.getPublicServices = async (req, res, next) => {
     }
 
     if (category) {
-      // Check if it's an integer ID
       if (/^\d+$/.test(category)) {
         whereClause.categoryId = parseInt(category);
       } else {
-        // Query by Category Slug
-        whereClause.category = {
-          slug: category
-        };
+        whereClause.category = { slug: category };
       }
     }
 
-    const services = await prisma.service.findMany({
-      where: whereClause,
-      orderBy: { order: 'asc' },
-      include: { category: true }
-    });
+    const [total, services] = await Promise.all([
+      prisma.service.count({ where: whereClause }),
+      prisma.service.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        orderBy: { order: 'asc' },
+        include: { category: true }
+      })
+    ]);
 
-    return success(res, 'Servicios obtenidos correctamente.', { services });
+    return success(res, 'Servicios obtenidos correctamente.', {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      services
+    });
   } catch (err) {
     next(err);
   }

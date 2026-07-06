@@ -36,6 +36,29 @@ exports.getSettingsByGroup = async (req, res, next) => {
 };
 
 /**
+ * Create or update a setting by key
+ */
+exports.upsertSetting = async (req, res, next) => {
+  try {
+    const { key, value, group } = req.body;
+
+    if (!key || value === undefined) {
+      return error(res, 'La clave y el valor de la configuración son obligatorios.', {}, 400);
+    }
+
+    const setting = await prisma.setting.upsert({
+      where: { key },
+      update: { value, ...(group !== undefined ? { group } : {}) },
+      create: { key, value, group: group || null }
+    });
+
+    return success(res, 'Configuración guardada correctamente.', { setting });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * Update setting value by key
  */
 exports.updateSettingByKey = async (req, res, next) => {

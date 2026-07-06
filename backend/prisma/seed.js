@@ -232,6 +232,99 @@ async function main() {
   }
   console.log('Seeded Settings.');
 
+  // 4b. Page content settings for frontend CMS
+  const pageContentSettings = [
+    {
+      key: 'page.home',
+      group: 'pages',
+      value: {
+        heroBadgeEs: 'Ingeniería, Microelectrónica e Inteligencia Artificial',
+        heroBadgeEn: 'Engineering, Microelectronics & Artificial Intelligence',
+        heroTitleEs: 'Transformamos Tecnología en Soluciones Extraordinarias',
+        heroTitleEn: 'We Transform Technology Into Extraordinary Solutions',
+        heroSubtitleEs: 'Soporte de alta precisión para laptops, desarrollo de software modular robusto e integración de Agentes de Inteligencia Artificial.',
+        heroSubtitleEn: 'High-precision laptop support, robust modular software development, and AI Agent integration.',
+        statsExperience: '6+',
+        statsProjects: '150+',
+        statsRating: '4.9/5',
+        statsReparations: '2400+'
+      }
+    },
+    {
+      key: 'page.nosotros',
+      group: 'pages',
+      value: {
+        titleEs: 'Quiénes Somos',
+        titleEn: 'About Us',
+        subtitleEs: 'Innovación, precisión y compromiso tecnológico desde Santa Cruz, Bolivia.',
+        subtitleEn: 'Innovation, precision, and technological commitment from Santa Cruz, Bolivia.',
+        storyTitleEs: 'Nuestra Historia',
+        storyTitleEn: 'Our Story',
+        storyTextEs: 'Global Service nació con el propósito de elevar los estándares de servicio tecnológico e ingeniería en la región.',
+        storyTextEn: 'Global Service was born to raise technology service and engineering standards in the region.',
+        missionTitleEs: 'Misión',
+        missionTitleEn: 'Mission',
+        missionTextEs: 'Proveer soluciones tecnológicas de la más alta calidad y precisión.',
+        missionTextEn: 'Provide technological solutions of the highest quality and precision.',
+        visionTitleEs: 'Visión',
+        visionTitleEn: 'Vision',
+        visionTextEs: 'Ser el referente regional en microelectrónica, software e IA.',
+        visionTextEn: 'To be the regional benchmark in microelectronics, software and AI.'
+      }
+    },
+    {
+      key: 'page.contacto',
+      group: 'pages',
+      value: {
+        titleEs: 'Contáctanos',
+        titleEn: 'Contact Us',
+        subtitleEs: 'Estamos listos para atenderte en nuestro laboratorio o de forma remota.',
+        subtitleEn: 'We are ready to assist you in our laboratory or remotely.',
+        phone: '+591 78459001',
+        whatsapp: '+591 78459001',
+        email: 'contacto@globalservice.bo',
+        addressEs: 'Barrio Equipetrol, Calle 8 Este #15, Santa Cruz de la Sierra, Bolivia',
+        addressEn: 'Barrio Equipetrol, Calle 8 Este #15, Santa Cruz de la Sierra, Bolivia',
+        hoursEs: 'Lunes a Viernes: 08:30 - 18:30 | Sábados: 09:00 - 13:00',
+        hoursEn: 'Monday to Friday: 08:30 - 18:30 | Saturdays: 09:00 - 13:00'
+      }
+    }
+  ];
+
+  for (const set of pageContentSettings) {
+    await prisma.setting.upsert({
+      where: { key: set.key },
+      update: { value: set.value },
+      create: { key: set.key, value: set.value, group: set.group }
+    });
+  }
+  console.log('Seeded page content settings.');
+
+  // 4c. Team members
+  const teamMembers = [
+    { name: 'Enrique Condori', roleEs: 'CEO & Fundador', roleEn: 'CEO & Founder', bioEs: 'Ingeniero de Sistemas especialista en microelectrónica, cloud e IA aplicada.', bioEs_en: 'Systems Engineer specializing in microelectronics, cloud and applied AI.', order: 1 },
+    { name: 'Lucía Méndez', roleEs: 'Gerente de Proyectos', roleEn: 'Project Manager', bioEs: 'Scrum Master responsable de entregas ágiles y comunicación con clientes.', bioEs_en: 'Scrum Master ensuring agile deliveries and client communication.', order: 2 },
+    { name: 'Rodrigo Paz', roleEs: 'Líder de Desarrollo', roleEn: 'Development Lead', bioEs: 'Full-Stack Developer experto en arquitecturas modernas e integración de IA.', bioEs_en: 'Full-Stack Developer expert in modern architectures and AI integration.', order: 3 }
+  ];
+
+  for (const tm of teamMembers) {
+    const existing = await prisma.teamMember.findFirst({ where: { name: tm.name } });
+    if (!existing) {
+      await prisma.teamMember.create({
+        data: {
+          name: tm.name,
+          roleEs: tm.roleEs,
+          roleEn: tm.roleEn,
+          bioEs: tm.bioEs,
+          bioEn: tm.bioEs_en,
+          active: true,
+          order: tm.order
+        }
+      });
+    }
+  }
+  console.log('Seeded team members.');
+
   // 5. Create Testimonials
   const testimonials = [
     { name: 'Juan Carlos Pérez', role: 'Gerente General', city: 'Santa Cruz', comment: 'El soporte técnico es impecable. Repararon nuestras computadoras corporativas en tiempo récord y el mantenimiento preventivo nos ha ahorrado muchos dolores de cabeza.', rating: 5, active: true, order: 1 },

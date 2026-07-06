@@ -11,6 +11,7 @@ const galleryController = require('../controllers/gallery.controller');
 const settingController = require('../controllers/setting.controller');
 const contactController = require('../controllers/contact.controller');
 const quoteController = require('../controllers/quote.controller');
+const teamController = require('../controllers/team.controller');
 
 // 1. Home Page Info
 router.get('/home', pageController.getPublicHome);
@@ -43,6 +44,9 @@ router.get('/gallery', galleryController.getPublicGallery);
 
 // 9. Settings public endpoint
 router.get('/settings', settingController.getPublicSettings);
+
+// 11. Team public endpoint
+router.get('/team', teamController.getPublicTeam);
 
 // 10. Forms public submissions
 router.post('/contact', contactController.submitContactMessage);

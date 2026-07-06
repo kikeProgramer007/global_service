@@ -52,4 +52,5 @@ export interface BlogPost {
   readTime: string;
   image: string;
   summary: string;
+  content?: string;
 }

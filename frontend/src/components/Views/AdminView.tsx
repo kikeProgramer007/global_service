@@ -36,9 +36,11 @@ import {
   Menu,
   Sun
 } from 'lucide-react';
-import { useCMS, CMSService, CMSProject, CMSBlogPost, CMSMessage, CMSQuote, CMSMediaItem, UserRole } from '../../context/CMSContext';
+import { useCMS, CMSService, CMSProject, CMSBlogPost, CMSMessage, CMSQuote, CMSMediaItem, CMSTeamMember, UserRole } from '../../context/CMSContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { ActivePage } from '../../types';
+import Pagination from '../Pagination';
+import { IMAGES } from '../../assets';
 
 interface AdminViewProps {
   onPageChange?: (page: ActivePage) => void;
@@ -59,12 +61,23 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
     testimonials,
     mediaItems,
     pageContents,
+    categoryPages,
+    teamMembers,
+    isLoading,
+    isConnected,
+    apiError,
+    dashboardStats,
     
     login,
     logout,
     addUser,
     deleteUser,
     updatePageContents,
+    updateCategoryPage,
+    uploadImage,
+    addTeamMember,
+    updateTeamMember,
+    deleteTeamMember,
     
     addService,
     updateService,
@@ -90,9 +103,10 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   // Login State
-  const [usernameInput, setUsernameInput] = useState('');
-  const [roleInput, setRoleInput] = useState<UserRole>('admin');
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const [showLoginError, setShowLoginError] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Search & Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -101,7 +115,10 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
 
   // Sub-tabs for forms
   const [formSubTab, setFormSubTab] = useState<'mensajes' | 'cotizaciones'>('mensajes');
-  const [pageEditTab, setPageEditTab] = useState<'home' | 'nosotros' | 'contacto'>('home');
+  const [pageEditTab, setPageEditTab] = useState<'home' | 'nosotros' | 'contacto' | 'equipo'>('home');
+  const [servicesPage, setServicesPage] = useState(1);
+  const servicesPerPage = 10;
+  const [serviceImageFile, setServiceImageFile] = useState<File | null>(null);
 
   // Modal / Editing states
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
@@ -161,20 +178,31 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
 
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [mediaFormData, setMediaFormData] = useState({
-    name: '',
-    type: 'image' as CMSMediaItem['type'],
-    url: '',
-    size: '1.5 MB',
+    file: null as File | null,
     useCase: ''
   });
 
   // User list modal state
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [newUserFormData, setNewUserFormData] = useState({
-    username: '',
     name: '',
     email: '',
+    password: '',
     role: 'editor' as UserRole
+  });
+
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [editingTeamMember, setEditingTeamMember] = useState<CMSTeamMember | null>(null);
+  const [teamImageFile, setTeamImageFile] = useState<File | null>(null);
+  const [teamFormData, setTeamFormData] = useState({
+    name: '',
+    roleEs: '',
+    roleEn: '',
+    bioEs: '',
+    bioEn: '',
+    image: '',
+    status: 'active' as CMSTeamMember['status'],
+    order: 1
   });
 
   // Page contents editing state
@@ -182,30 +210,35 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
   const [nosotrosPageData, setNosotrosPageData] = useState({ ...pageContents.nosotros });
   const [contactoPageData, setContactoPageData] = useState({ ...pageContents.contacto });
 
-  const handlePageContentSave = (page: 'home' | 'nosotros' | 'contacto') => {
-    if (page === 'home') {
-      updatePageContents('home', homePageData);
-    } else if (page === 'nosotros') {
-      updatePageContents('nosotros', nosotrosPageData);
-    } else if (page === 'contacto') {
-      updatePageContents('contacto', contactoPageData);
+  const handlePageContentSave = async (page: 'home' | 'nosotros' | 'contacto') => {
+    try {
+      if (page === 'home') {
+        await updatePageContents('home', homePageData);
+      } else if (page === 'nosotros') {
+        await updatePageContents('nosotros', nosotrosPageData);
+      } else if (page === 'contacto') {
+        await updatePageContents('contacto', contactoPageData);
+      }
+      alert('¡Página guardada exitosamente!');
+    } catch {
+      alert('Error al guardar la página. Verifica la conexión con el servidor.');
     }
-    alert('¡Página guardada exitosamente en el CMS!');
   };
 
   // Helper lists
   const availableIcons = ['Laptop', 'Code', 'Brain', 'ShieldCheck', 'Briefcase', 'ShoppingCart', 'Wrench', 'CheckCircle'];
 
   // Handle Logins
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!usernameInput.trim()) return;
-    const success = login(usernameInput, roleInput);
+    if (!emailInput.trim() || !passwordInput.trim()) return;
+    setIsLoggingIn(true);
+    const success = await login(emailInput.trim(), passwordInput);
+    setIsLoggingIn(false);
     if (!success) {
       setShowLoginError(true);
     } else {
       setShowLoginError(false);
-      // Synchronize current page data editors
       setHomePageData({ ...pageContents.home });
       setNosotrosPageData({ ...pageContents.nosotros });
       setContactoPageData({ ...pageContents.contacto });
@@ -214,6 +247,7 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
 
   // 1. SERVICES MODAL HANDLERS
   const openServiceModal = (service: CMSService | null = null) => {
+    setServiceImageFile(null);
     if (service) {
       setEditingService(service);
       setServiceFormData({
@@ -258,14 +292,24 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
     setIsServiceModalOpen(true);
   };
 
-  const handleServiceSubmit = (e: React.FormEvent) => {
+  const handleServiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingService) {
-      updateService(editingService.id, serviceFormData);
-    } else {
-      addService(serviceFormData);
+    try {
+      let imageUrl = serviceFormData.image;
+      if (serviceImageFile) {
+        imageUrl = await uploadImage(serviceImageFile);
+      }
+      const payload = { ...serviceFormData, image: imageUrl };
+      if (editingService) {
+        await updateService(editingService.id, payload);
+      } else {
+        await addService(payload);
+      }
+      setIsServiceModalOpen(false);
+      setServiceImageFile(null);
+    } catch {
+      alert('Error al guardar el servicio.');
     }
-    setIsServiceModalOpen(false);
   };
 
   // 2. PROJECTS MODAL HANDLERS
@@ -306,14 +350,18 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
     setIsProjectModalOpen(true);
   };
 
-  const handleProjectSubmit = (e: React.FormEvent) => {
+  const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingProject) {
-      updateProject(editingProject.id, projectFormData);
-    } else {
-      addProject(projectFormData);
+    try {
+      if (editingProject) {
+        await updateProject(editingProject.id, projectFormData);
+      } else {
+        await addProject(projectFormData);
+      }
+      setIsProjectModalOpen(false);
+    } catch {
+      alert('Error al guardar el proyecto.');
     }
-    setIsProjectModalOpen(false);
   };
 
   // 3. BLOGS MODAL HANDLERS
@@ -354,7 +402,7 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
     setIsBlogModalOpen(true);
   };
 
-  const handleBlogSubmit = (e: React.FormEvent) => {
+  const handleBlogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const slug = blogFormData.slug || blogFormData.titleEs.toLowerCase()
       .replace(/[^a-z0-9 ]/g, '')
@@ -369,43 +417,105 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
       readTimeEn: '5 min read'
     };
 
-    if (editingBlog) {
-      updateBlog(editingBlog.id, data);
-    } else {
-      addBlog(data);
+    try {
+      if (editingBlog) {
+        await updateBlog(editingBlog.id, data);
+      } else {
+        await addBlog(data);
+      }
+      setIsBlogModalOpen(false);
+    } catch {
+      alert('Error al guardar el artículo.');
     }
-    setIsBlogModalOpen(false);
   };
 
   // 4. MEDIA SUBMIT HANDLER
-  const handleMediaSubmit = (e: React.FormEvent) => {
+  const handleMediaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mediaFormData.name || !mediaFormData.url) return;
-    addMediaItem({
-      name: mediaFormData.name,
-      type: mediaFormData.type,
-      url: mediaFormData.url,
-      size: mediaFormData.size,
-      useCase: mediaFormData.useCase || 'Biblioteca General'
-    });
-    setIsMediaModalOpen(false);
-    setMediaFormData({ name: '', type: 'image', url: '', size: '1.5 MB', useCase: '' });
+    if (!mediaFormData.file) return;
+    try {
+      await addMediaItem(mediaFormData.file, mediaFormData.useCase || 'Biblioteca General');
+      setIsMediaModalOpen(false);
+      setMediaFormData({ file: null, useCase: '' });
+    } catch {
+      alert('Error al subir el archivo.');
+    }
   };
 
   // 5. USER ADD SUBMIT HANDLER
-  const handleUserSubmit = (e: React.FormEvent) => {
+  const handleUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserFormData.username || !newUserFormData.email) return;
-    addUser({
-      username: newUserFormData.username.toLowerCase(),
-      name: newUserFormData.name || newUserFormData.username,
-      email: newUserFormData.email,
-      role: newUserFormData.role,
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150'
-    });
-    setIsUserModalOpen(false);
-    setNewUserFormData({ username: '', name: '', email: '', role: 'editor' });
+    if (!newUserFormData.email || !newUserFormData.password) return;
+    try {
+      await addUser({
+        name: newUserFormData.name || newUserFormData.email.split('@')[0],
+        email: newUserFormData.email,
+        password: newUserFormData.password,
+        role: newUserFormData.role,
+      });
+      setIsUserModalOpen(false);
+      setNewUserFormData({ name: '', email: '', password: '', role: 'editor' });
+    } catch {
+      alert('Error al crear el usuario.');
+    }
   };
+
+  const handleTeamSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      let imageUrl = teamFormData.image;
+      if (teamImageFile) {
+        imageUrl = await uploadImage(teamImageFile);
+      }
+      const payload = { ...teamFormData, image: imageUrl };
+      if (editingTeamMember) {
+        await updateTeamMember(editingTeamMember.id, payload);
+      } else {
+        await addTeamMember(payload);
+      }
+      setIsTeamModalOpen(false);
+      setTeamImageFile(null);
+    } catch {
+      alert('Error al guardar miembro del equipo.');
+    }
+  };
+
+  const openTeamModal = (member: CMSTeamMember | null = null) => {
+    setTeamImageFile(null);
+    if (member) {
+      setEditingTeamMember(member);
+      setTeamFormData({
+        name: member.name,
+        roleEs: member.roleEs,
+        roleEn: member.roleEn,
+        bioEs: member.bioEs,
+        bioEn: member.bioEn,
+        image: member.image,
+        status: member.status,
+        order: member.order
+      });
+    } else {
+      setEditingTeamMember(null);
+      setTeamFormData({
+        name: '',
+        roleEs: '',
+        roleEn: '',
+        bioEs: '',
+        bioEn: '',
+        image: IMAGES.teamLeader,
+        status: 'active',
+        order: teamMembers.length + 1
+      });
+    }
+    setIsTeamModalOpen(true);
+  };
+
+  const filteredServices = services.filter(s => s.titleEs.toLowerCase().includes(searchQuery.toLowerCase()));
+  const servicesTotalPages = Math.max(1, Math.ceil(filteredServices.length / servicesPerPage));
+  const paginatedServices = filteredServices.slice(
+    (servicesPage - 1) * servicesPerPage,
+    servicesPage * servicesPerPage
+  );
 
   // NOT LOGGED IN VIEW: Render Beautiful CMS login portal
   if (!currentUser) {
@@ -436,49 +546,52 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
 
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Usuario</label>
+              <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Correo electrónico</label>
               <input 
-                type="text" 
-                placeholder="Ej: enrique, lucia, admin..." 
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
+                type="email" 
+                placeholder="admin@globalservice.bo" 
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-white/15 bg-slate-950 text-white text-xs outline-none focus:border-brand-cyan/60 focus:shadow-[0_0_15px_rgba(0,240,255,0.15)] transition-all"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Rol de Cuenta</label>
-              <select
-                value={roleInput}
-                onChange={(e) => setRoleInput(e.target.value as UserRole)}
-                className="w-full px-4 py-3 rounded-xl border border-white/15 bg-slate-950 text-white text-xs outline-none focus:border-brand-cyan/60 transition-all cursor-pointer"
-              >
-                <option value="admin">Administrador (Acceso Completo)</option>
-                <option value="editor">Editor (Sólo contenido de páginas)</option>
-              </select>
+              <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Contraseña</label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-white/15 bg-slate-950 text-white text-xs outline-none focus:border-brand-cyan/60 focus:shadow-[0_0_15px_rgba(0,240,255,0.15)] transition-all"
+                required
+              />
             </div>
 
             {showLoginError && (
               <p className="text-xs text-red-400 font-mono flex items-center space-x-1.5">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                <span>Credenciales inválidas de simulación. Intenta nuevamente.</span>
+                <span>{apiError || 'Credenciales incorrectas. Intenta nuevamente.'}</span>
               </p>
             )}
 
             <button 
               type="submit"
-              className="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue text-slate-950 text-xs font-bold uppercase tracking-wider transition-all duration-300 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-brand-cyan/15 cursor-pointer"
+              disabled={isLoggingIn}
+              className="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue text-slate-950 text-xs font-bold uppercase tracking-wider transition-all duration-300 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-brand-cyan/15 cursor-pointer disabled:opacity-50"
             >
-              Iniciar Sesión
+              {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
           </form>
 
-          {/* Quick tips */}
           <div className="mt-8 pt-6 border-t border-white/5 space-y-2 text-[11px] text-slate-500 font-mono leading-relaxed">
-            <p className="text-slate-400 font-bold">💡 Cuentas de Acceso Rápido:</p>
-            <p>• Admin: <span className="text-brand-cyan">enrique</span> (Rol: admin)</p>
-            <p>• Editor: <span className="text-brand-cyan">lucia</span> (Rol: editor)</p>
+            <p className="text-slate-400 font-bold">Credenciales de prueba:</p>
+            <p>• Email: <span className="text-brand-cyan">admin@globalservice.bo</span></p>
+            <p>• Contraseña: <span className="text-brand-cyan">admin123.</span></p>
+            {!isConnected && (
+              <p className="text-amber-400 mt-2">⚠ Backend no disponible. Inicia el servidor en el puerto 4000.</p>
+            )}
           </div>
         </motion.div>
       </div>
@@ -795,6 +908,7 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                 {[
                   { id: 'home', label: 'Inicio (Home)' },
                   { id: 'nosotros', label: 'Nosotros' },
+                  { id: 'equipo', label: 'Equipo' },
                   { id: 'contacto', label: 'Contacto' }
                 ].map((tab) => (
                   <button
@@ -991,6 +1105,44 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                   </div>
                 </div>
               )}
+
+              {/* 2D: TEAM MANAGEMENT */}
+              {pageEditTab === 'equipo' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                    <h3 className="text-sm font-bold text-white">Gestionar Nuestro Equipo</h3>
+                    <button
+                      onClick={() => openTeamModal(null)}
+                      className="px-4 py-2 rounded-xl bg-brand-cyan text-slate-950 text-xs font-bold cursor-pointer hover:brightness-110 transition-all flex items-center space-x-1.5"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Agregar Miembro</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {teamMembers.map((m) => (
+                      <div key={m.id} className="p-4 rounded-2xl border border-white/5 bg-slate-900/20 flex gap-4">
+                        <img src={m.image} alt={m.name} className="h-16 w-16 rounded-xl object-cover border border-white/10 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-white truncate">{m.name}</h4>
+                          <p className="text-[10px] text-brand-cyan font-mono truncate">{m.roleEs}</p>
+                          <p className="text-[10px] text-slate-500 line-clamp-2 mt-1">{m.bioEs}</p>
+                          <div className="flex gap-2 mt-2">
+                            <button onClick={() => openTeamModal(m)} className="text-[10px] text-brand-cyan hover:underline cursor-pointer">Editar</button>
+                            <button
+                              onClick={() => { if (confirm('¿Eliminar miembro?')) deleteTeamMember(m.id); }}
+                              className="text-[10px] text-red-400 hover:underline cursor-pointer"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1007,7 +1159,7 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                     type="text" 
                     placeholder="Buscar servicios..." 
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => { setSearchQuery(e.target.value); setServicesPage(1); }}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/10 bg-slate-900/60 text-white text-xs outline-none focus:border-brand-cyan/60"
                   />
                 </div>
@@ -1036,6 +1188,7 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                   <tbody className="divide-y divide-white/5 text-xs text-slate-300">
                     {services
                       .filter(s => s.titleEs.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .slice((servicesPage - 1) * servicesPerPage, servicesPage * servicesPerPage)
                       .map((s) => (
                         <tr key={s.id} className="hover:bg-white/[0.02] transition-all">
                           <td className="p-4 font-bold text-white flex items-center space-x-3">
@@ -1074,6 +1227,11 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                   </tbody>
                 </table>
               </div>
+              <Pagination
+                currentPage={servicesPage}
+                totalPages={servicesTotalPages}
+                onPageChange={setServicesPage}
+              />
             </div>
           )}
 
@@ -1450,10 +1608,10 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                       }`}>{u.role}</span>
                     </div>
 
-                    {currentUser.role === 'admin' && u.username !== currentUser.username && (
+                    {currentUser.role === 'admin' && u.id && u.id !== currentUser.id && (
                       <button 
                         onClick={() => {
-                          if (confirm(`¿Estás seguro de desvincular a ${u.name}?`)) deleteUser(u.username);
+                          if (confirm(`¿Estás seguro de desvincular a ${u.name}?`)) deleteUser(u.id!);
                         }}
                         className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-red-500/10 hover:text-red-400 text-slate-500 transition-all cursor-pointer"
                         title="Desvincular"
@@ -1521,8 +1679,27 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Imagen Principal (URL)</label>
-                  <input type="text" value={serviceFormData.image} onChange={(e) => setServiceFormData(prev => ({ ...prev, image: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" />
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Imagen Principal</label>
+                  {(serviceFormData.image || serviceImageFile) && (
+                    <img
+                      src={serviceImageFile ? URL.createObjectURL(serviceImageFile) : serviceFormData.image}
+                      alt="Vista previa"
+                      className="h-24 w-full object-cover rounded-lg border border-white/10 mb-2"
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setServiceImageFile(e.target.files?.[0] || null)}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none text-xs mb-2"
+                  />
+                  <input
+                    type="text"
+                    placeholder="O pegar URL de imagen..."
+                    value={serviceFormData.image}
+                    onChange={(e) => setServiceFormData(prev => ({ ...prev, image: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1686,28 +1863,14 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
 
               <form onSubmit={handleMediaSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Nombre del Archivo</label>
-                  <input type="text" placeholder="Ej: banner_hero.jpg" value={mediaFormData.name} onChange={(e) => setMediaFormData(prev => ({ ...prev, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Tipo</label>
-                    <select value={mediaFormData.type} onChange={(e) => setMediaFormData(prev => ({ ...prev, type: e.target.value as any }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none">
-                      <option value="image">Imagen</option>
-                      <option value="video">Video</option>
-                      <option value="pdf">Documento PDF</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Tamaño Estimado</label>
-                    <input type="text" placeholder="Ej: 1.5 MB" value={mediaFormData.size} onChange={(e) => setMediaFormData(prev => ({ ...prev, size: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">URL del Archivo / Origen</label>
-                  <input type="text" placeholder="https://images.unsplash.com/..." value={mediaFormData.url} onChange={(e) => setMediaFormData(prev => ({ ...prev, url: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required />
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Archivo</label>
+                  <input
+                    type="file"
+                    accept="image/*,video/*,.pdf,.doc,.docx"
+                    onChange={(e) => setMediaFormData(prev => ({ ...prev, file: e.target.files?.[0] || null }))}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none text-xs"
+                    required
+                  />
                 </div>
 
                 <div>
@@ -1715,7 +1878,7 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                   <input type="text" placeholder="Ej: Banner Home, Blog, PDF Catálogo..." value={mediaFormData.useCase} onChange={(e) => setMediaFormData(prev => ({ ...prev, useCase: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" />
                 </div>
 
-                <button type="submit" className="w-full py-3 rounded-xl bg-brand-cyan text-slate-950 font-bold uppercase tracking-wider cursor-pointer">Registrar en Galería</button>
+                <button type="submit" className="w-full py-3 rounded-xl bg-brand-cyan text-slate-950 font-bold uppercase tracking-wider cursor-pointer">Subir Archivo</button>
               </form>
             </motion.div>
           </div>
@@ -1740,11 +1903,6 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
 
               <form onSubmit={handleUserSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Nombre de Usuario (Para Login)</label>
-                  <input type="text" placeholder="Ej: mario" value={newUserFormData.username} onChange={(e) => setNewUserFormData(prev => ({ ...prev, username: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required />
-                </div>
-
-                <div>
                   <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Nombre Completo</label>
                   <input type="text" placeholder="Ej: Mario Justiniano" value={newUserFormData.name} onChange={(e) => setNewUserFormData(prev => ({ ...prev, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required />
                 </div>
@@ -1752,6 +1910,11 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                 <div>
                   <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Correo Institucional</label>
                   <input type="email" placeholder="mario.j@globalservice.bo" value={newUserFormData.email} onChange={(e) => setNewUserFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Contraseña</label>
+                  <input type="password" placeholder="Mínimo 6 caracteres" value={newUserFormData.password} onChange={(e) => setNewUserFormData(prev => ({ ...prev, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required minLength={6} />
                 </div>
 
                 <div>
@@ -1763,6 +1926,67 @@ export default function AdminView({ onPageChange, theme = 'dark', onThemeToggle 
                 </div>
 
                 <button type="submit" className="w-full py-3 rounded-xl bg-brand-cyan text-slate-950 font-bold uppercase tracking-wider cursor-pointer">Registrar Cuenta</button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 6. TEAM MEMBER MODAL */}
+      <AnimatePresence>
+        {isTeamModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsTeamModalOpen(false)}></div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 rounded-3xl border border-white/10 bg-slate-900 text-white relative z-10 space-y-4 text-xs"
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <h3 className="text-sm font-bold">{editingTeamMember ? 'Editar Miembro' : 'Nuevo Miembro'}</h3>
+                <button onClick={() => setIsTeamModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer"><X className="h-5 w-5" /></button>
+              </div>
+              <form onSubmit={handleTeamSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">Nombre completo</label>
+                  <input type="text" value={teamFormData.name} onChange={(e) => setTeamFormData(p => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">Cargo (ES)</label>
+                    <input type="text" value={teamFormData.roleEs} onChange={(e) => setTeamFormData(p => ({ ...p, roleEs: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" required />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">Cargo (EN)</label>
+                    <input type="text" value={teamFormData.roleEn} onChange={(e) => setTeamFormData(p => ({ ...p, roleEn: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">Biografía (ES)</label>
+                  <textarea rows={3} value={teamFormData.bioEs} onChange={(e) => setTeamFormData(p => ({ ...p, bioEs: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none resize-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">Foto del miembro</label>
+                  {(teamFormData.image || teamImageFile) && (
+                    <img src={teamImageFile ? URL.createObjectURL(teamImageFile) : teamFormData.image} alt="" className="h-20 w-20 rounded-xl object-cover border border-white/10 mb-2" />
+                  )}
+                  <input type="file" accept="image/*" onChange={(e) => setTeamImageFile(e.target.files?.[0] || null)} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none text-xs" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">Estado</label>
+                    <select value={teamFormData.status} onChange={(e) => setTeamFormData(p => ({ ...p, status: e.target.value as CMSTeamMember['status'] }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none">
+                      <option value="active">Activo</option>
+                      <option value="inactive">Inactivo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1">Orden</label>
+                    <input type="number" value={teamFormData.order} onChange={(e) => setTeamFormData(p => ({ ...p, order: parseInt(e.target.value) }))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 outline-none" />
+                  </div>
+                </div>
+                <button type="submit" className="w-full py-3 rounded-xl bg-brand-cyan text-slate-950 font-bold uppercase tracking-wider cursor-pointer">Guardar Miembro</button>
               </form>
             </motion.div>
           </div>

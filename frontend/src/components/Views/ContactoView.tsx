@@ -19,6 +19,7 @@ import {
   Map 
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCMS } from '../../context/CMSContext';
 
 const branches = [
   {
@@ -62,6 +63,8 @@ interface ContactoViewProps {
 
 export default function ContactoView({ theme = 'dark' }: ContactoViewProps) {
   const { t, language } = useLanguage();
+  const { pageContents, submitMessage } = useCMS();
+  const contactContent = pageContents.contacto;
   const [activeBranchId, setActiveBranchId] = useState('equipetrol');
   const [formData, setFormData] = useState({
     name: '',
@@ -71,6 +74,8 @@ export default function ContactoView({ theme = 'dark' }: ContactoViewProps) {
     message: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -79,10 +84,25 @@ export default function ContactoView({ theme = 'dark' }: ContactoViewProps) {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.email) {
+    if (!formData.name || !formData.email || !formData.message) return;
+    setIsSubmitting(true);
+    setSubmitError('');
+    try {
+      await submitMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.service,
+        message: formData.message,
+        serviceRequested: formData.service,
+      });
       setIsSubmitted(true);
+    } catch {
+      setSubmitError(language === 'es' ? 'Error al enviar el mensaje. Intenta nuevamente.' : 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -129,8 +149,8 @@ export default function ContactoView({ theme = 'dark' }: ContactoViewProps) {
                   </div>
                   <div>
                     <h4 className="text-xs text-slate-500 font-mono uppercase">{language === 'es' ? 'WhatsApp / Teléfono' : 'WhatsApp / Phone'}</h4>
-                    <a href="https://wa.me/59178459001" target="_blank" rel="noreferrer" className={`text-sm font-semibold ${theme === 'dark' ? 'text-white hover:text-brand-cyan' : 'text-slate-800 hover:text-brand-blue'} transition-colors`}>
-                      +591 78459001
+                    <a href={`https://wa.me/${contactContent.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className={`text-sm font-semibold ${theme === 'dark' ? 'text-white hover:text-brand-cyan' : 'text-slate-800 hover:text-brand-blue'} transition-colors`}>
+                      {contactContent.phone}
                     </a>
                   </div>
                 </div>
@@ -142,8 +162,8 @@ export default function ContactoView({ theme = 'dark' }: ContactoViewProps) {
                   </div>
                   <div>
                     <h4 className="text-xs text-slate-500 font-mono uppercase">{language === 'es' ? 'Correo Corporativo' : 'Corporate Email'}</h4>
-                    <a href="mailto:enriquecq@iatech.bo" className={`text-sm font-semibold ${theme === 'dark' ? 'text-white hover:text-brand-cyan' : 'text-slate-800 hover:text-brand-blue'} transition-colors`}>
-                      enriquecq@iatech.bo
+                    <a href={`mailto:${contactContent.email}`} className={`text-sm font-semibold ${theme === 'dark' ? 'text-white hover:text-brand-cyan' : 'text-slate-800 hover:text-brand-blue'} transition-colors`}>
+                      {contactContent.email}
                     </a>
                   </div>
                 </div>
@@ -156,7 +176,7 @@ export default function ContactoView({ theme = 'dark' }: ContactoViewProps) {
                   <div>
                     <h4 className="text-xs text-slate-500 font-mono uppercase">{t('contact.info.address', 'Dirección')}</h4>
                     <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-800'} leading-relaxed`}>
-                      {t('contact.info.addressText', 'Barrio Equipetrol, Calle 8 Este #15, Santa Cruz de la Sierra, Bolivia')}
+                      {language === 'es' ? contactContent.addressEs : contactContent.addressEn}
                     </p>
                   </div>
                 </div>
