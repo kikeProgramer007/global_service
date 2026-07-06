@@ -1,0 +1,243 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum PageStatus {
+  draft
+  published
+}
+
+enum BlogPostStatus {
+  draft
+  published
+}
+
+enum ContactMessageStatus {
+  new
+  read
+  contacted
+  closed
+}
+
+enum QuoteRequestStatus {
+  new
+  reviewed
+  contacted
+  closed
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(EDITOR)
+  active    Boolean  @default(true)
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Page {
+  id              Int        @id @default(autoincrement())
+  title           String
+  slug            String     @unique
+  description     String?
+  metaTitle       String?
+  metaDescription String?
+  status          PageStatus @default(draft)
+  order           Int        @default(0)
+  active          Boolean    @default(true)
+  sections        Section[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Section {
+  id         Int      @id @default(autoincrement())
+  pageId     Int
+  page       Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type       String
+  title      String?
+  subtitle   String?
+  content    Json     @default("{}")
+  imageUrl   String?
+  buttonText String?
+  buttonUrl  String?
+  order      Int      @default(0)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ServiceCategory {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?
+  icon        String?
+  order       Int       @default(0)
+  active      Boolean   @default(true)
+  services    Service[]
+}
+
+model Service {
+  id          Int             @id @default(autoincrement())
+  categoryId  Int
+  category    ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String          @unique
+  shortDesc   String?
+  description String?
+  icon        String?
+  imageUrl    String?
+  gallery     Json            @default("[]")
+  benefits    Json            @default("[]")
+  process     Json            @default("[]")
+  faq         Json            @default("[]")
+  priceFrom   Decimal?
+  active      Boolean         @default(true)
+  featured    Boolean         @default(false)
+  order       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  category    String
+  client      String?
+  shortDesc   String?
+  description String?
+  imageUrl    String?
+  gallery     Json     @default("[]")
+  techStack   Json     @default("[]")
+  demoUrl     String?
+  videoUrl    String?
+  active      Boolean  @default(true)
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BlogCategory {
+  id          Int        @id @default(autoincrement())
+  name        String
+  slug        String     @unique
+  description String?
+  active      Boolean    @default(true)
+  posts       BlogPost[]
+}
+
+model BlogPost {
+  id          Int            @id @default(autoincrement())
+  categoryId  Int
+  category    BlogCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String         @unique
+  excerpt     String?
+  content     String?
+  imageUrl    String?
+  author      String?
+  status      BlogPostStatus @default(draft)
+  views       Int            @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String?
+  city      String?
+  comment   String
+  rating    Int      @default(5)
+  imageUrl  String?
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Client {
+  id         Int      @id @default(autoincrement())
+  name       String
+  logoUrl    String?
+  websiteUrl String?
+  category   String?
+  active     Boolean  @default(true)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model GalleryItem {
+  id          Int      @id @default(autoincrement())
+  title       String?
+  description String?
+  imageUrl    String
+  category    String?
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model MediaFile {
+  id           Int      @id @default(autoincrement())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  url          String
+  type         String
+  createdAt    DateTime @default(now())
+}
+
+model ContactMessage {
+  id        Int                  @id @default(autoincrement())
+  name      String
+  phone     String?
+  email     String
+  service   String?
+  message   String
+  status    ContactMessageStatus @default(new)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+}
+
+model QuoteRequest {
+  id            Int                @id @default(autoincrement())
+  name          String
+  phone         String?
+  email         String
+  company       String?
+  serviceType   String?
+  budget        String?
+  description   String
+  attachmentUrl String?
+  status        QuoteRequestStatus @default(new)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  group     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

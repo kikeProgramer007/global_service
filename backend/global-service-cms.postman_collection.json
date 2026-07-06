@@ -1,0 +1,1199 @@
+{
+	"info": {
+		"_postman_id": "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
+		"name": "GLOBAL SERVICE CMS API",
+		"description": "Colección de endpoints para el CMS Headless de GLOBAL SERVICE, incluyendo APIs públicas para el frontend y privadas para el panel de administración.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Autenticación",
+			"item": [
+				{
+					"name": "Iniciar Sesión (Login)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.ok && response.data && response.data.token) {",
+									"    pm.collectionVariables.set(\"token\", response.data.token);",
+									"    console.log(\"Token JWT guardado automáticamente en la variable de la colección: {{token}}\");",
+									"}"
+								],
+								"type": "javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@globalservice.bo\",\n  \"password\": \"admin123.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Autentica al usuario administrador o editor. Si las credenciales son válidas y el usuario está activo, devuelve un token JWT que se guarda de manera automática en la variable {{token}} de la colección para autorizar el resto de llamadas."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener mi Perfil (/me)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Obtiene la información del usuario autenticado a través del token JWT."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Sitio Público",
+			"item": [
+				{
+					"name": "Obtener Página Inicio (Home)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/home",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"home"
+							]
+						},
+						"description": "Retorna todos los contenidos necesarios para renderizar el Home: Datos de página inicio, secciones asociadas, servicios destacados, proyectos destacados, testimonios activos, clientes activos y mapa clave-valor de configuraciones públicas."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Detalle Página por Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/pages/nosotros",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"pages",
+								"nosotros"
+							]
+						},
+						"description": "Retorna los detalles e información de una página interna activa mediante su slug, incluyendo sus secciones."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Servicios Públicos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/services?category=desarrollo-software&featured=true&search=CRM",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"services"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "desarrollo-software",
+									"description": "Filtro por slug de categoría de servicio o por ID numérico (opcional)"
+								},
+								{
+									"key": "featured",
+									"value": "true",
+									"description": "Filtro por destacados (true/false) (opcional)"
+								},
+								{
+									"key": "search",
+									"value": "CRM",
+									"description": "Filtro por palabra clave en título o descripción (opcional)"
+								}
+							]
+						},
+						"description": "Obtiene la lista de servicios activos para el portal público."
+					},
+					"response": []
+				},
+				{
+					"name": "Detalle Servicio por Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/services/sistemas-erp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"services",
+								"sistemas-erp"
+							]
+						},
+						"description": "Obtiene los detalles estructurados de un servicio particular usando su slug."
+					},
+					"response": []
+				},
+				{
+					"name": "Categorías de Servicios",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/service-categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"service-categories"
+							]
+						},
+						"description": "Retorna la lista de todas las categorías de servicios disponibles."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Proyectos (Portafolio)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/projects?category=Sistemas&featured=true&search=ERP",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"projects"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Sistemas",
+									"description": "Categoría de proyecto (Software, Móvil, Web, Sistemas, IA, E-commerce) (opcional)"
+								},
+								{
+									"key": "featured",
+									"value": "true",
+									"description": "Filtro destacados (true/false) (opcional)"
+								},
+								{
+									"key": "search",
+									"value": "ERP",
+									"description": "Búsqueda por texto en título (opcional)"
+								}
+							]
+						},
+						"description": "Obtiene los proyectos activos realizados."
+					},
+					"response": []
+				},
+				{
+					"name": "Detalle Proyecto por Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/projects/erp-constructoras-bolivia",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"projects",
+								"erp-constructoras-bolivia"
+							]
+						},
+						"description": "Obtiene la ficha completa de un proyecto mediante su slug."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Entradas de Blog",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/blog?page=1&limit=5&category=tecnologia&search=laptop",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"blog"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número de página (opcional)"
+								},
+								{
+									"key": "limit",
+									"value": "5",
+									"description": "Registros por página (opcional)"
+								},
+								{
+									"key": "category",
+									"value": "tecnologia",
+									"description": "Filtrar por slug de categoría (opcional)"
+								},
+								{
+									"key": "search",
+									"value": "laptop",
+									"description": "Búsqueda de texto (opcional)"
+								}
+							]
+						},
+						"description": "Lista artículos publicados en orden cronológico descendente."
+					},
+					"response": []
+				},
+				{
+					"name": "Detalle Artículo Blog por Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/blog/como-mantener-tu-laptop-en-estado-optimo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"blog",
+								"como-mantener-tu-laptop-en-estado-optimo"
+							]
+						},
+						"description": "Retorna el contenido de un post. Al invocar este endpoint, se incrementa automáticamente el contador de visitas (`views`) en el registro."
+					},
+					"response": []
+				},
+				{
+					"name": "Testimonios Activos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/testimonials",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"testimonials"
+							]
+						},
+						"description": "Retorna los testimonios activos para el carrusel."
+					},
+					"response": []
+				},
+				{
+					"name": "Clientes Activos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/clients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"clients"
+							]
+						},
+						"description": "Retorna la lista de logos de clientes activos."
+					},
+					"response": []
+				},
+				{
+					"name": "Galería de Imágenes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/gallery?category=Equipos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"gallery"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Equipos",
+									"description": "Filtro opcional de categoría (opcional)"
+								}
+							]
+						},
+						"description": "Retorna imágenes activas de la galería."
+					},
+					"response": []
+				},
+				{
+					"name": "Configuraciones Públicas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"settings"
+							]
+						},
+						"description": "Retorna un diccionario clave-valor listo para su consumo con toda la información de contacto e identidad de la empresa."
+					},
+					"response": []
+				},
+				{
+					"name": "Enviar Mensaje de Contacto",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Alejandro Mercado\",\n  \"email\": \"alejandro@correo.com\",\n  \"phone\": \"70020030\",\n  \"service\": \"Desarrollo de Software\",\n  \"message\": \"Hola, me interesa agendar una reunión para el diseño de un e-commerce.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/public/contact",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"contact"
+							]
+						},
+						"description": "Registra una entrada en el formulario de contactos."
+					},
+					"response": []
+				},
+				{
+					"name": "Enviar Solicitud de Cotización",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Patricia Valdez\",\n  \"email\": \"patricia@constructora.com\",\n  \"phone\": \"60050040\",\n  \"company\": \"Constructora Urubó\",\n  \"serviceType\": \"Sistemas ERP\",\n  \"budget\": \"1500 USD - 3000 USD\",\n  \"description\": \"Necesitamos cotizar un ERP básico con facturación boliviana en la nube.\",\n  \"attachmentUrl\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/public/quote",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"public",
+								"quote"
+							]
+						},
+						"description": "Registra una entrada en el formulario de cotizaciones estructuradas."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Panel de Administración (Privado)",
+			"item": [
+				{
+					"name": "Dashboard Estadísticas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/dashboard/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"dashboard",
+								"stats"
+							]
+						},
+						"description": "Obtiene totales acumulados de contenidos y últimos mensajes recibidos para el panel inicial."
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Páginas",
+					"item": [
+						{
+							"name": "Listar Páginas (Admin)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/pages?page=1&limit=10&search=servicios&status=published",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"pages"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "search",
+											"value": "servicios"
+										},
+										{
+											"key": "status",
+											"value": "published"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Detalle Página",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/pages/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"pages",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Crear Página",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Servicios Especiales\",\n  \"description\": \"Página orientada a convenios corporativos\",\n  \"metaTitle\": \"Servicios Corporativos - Global Service\",\n  \"metaDescription\": \"Outsourcing informático mensual\",\n  \"status\": \"draft\",\n  \"order\": 11,\n  \"active\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/pages",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"pages"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Actualizar Página",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Servicios Corporativos Premium\",\n  \"status\": \"published\",\n  \"active\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/pages/11",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"pages",
+										"11"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar Página",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/pages/11",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"pages",
+										"11"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Secciones",
+					"item": [
+						{
+							"name": "Obtener Secciones por Página",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/pages/1/sections",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"pages",
+										"1",
+										"sections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Crear Sección",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"pageId\": 1,\n  \"type\": \"features\",\n  \"title\": \"Nuestros Beneficios\",\n  \"subtitle\": \"¿Por qué elegir Global Service?\",\n  \"content\": {\n    \"items\": [\"Garantía escrita\", \"Técnicos certificados\", \"Soporte 24/7\"]\n  },\n  \"order\": 2,\n  \"active\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/sections",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"sections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reordenar Sección",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"order\": 5\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/sections/1/order",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"sections",
+										"1",
+										"order"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Servicios",
+					"item": [
+						{
+							"name": "Listar Categorías (Admin)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/service-categories",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"service-categories"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar Servicios (Admin)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/services?page=1&limit=10&search=computadoras&category=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"services"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "search",
+											"value": "computadoras"
+										},
+										{
+											"key": "category",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Crear Servicio",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"categoryId\": 1,\n  \"title\": \"Reparación de Servidores\",\n  \"shortDesc\": \"Mantenimiento crítico de servidores de datos.\",\n  \"description\": \"Diagnóstico de hardware, arreglos RAID, fuentes de poder redundantes y optimización térmica.\",\n  \"icon\": \"dns\",\n  \"imageUrl\": \"\",\n  \"priceFrom\": 500,\n  \"active\": true,\n  \"featured\": true,\n  \"order\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/services",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"services"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Multimedia",
+					"item": [
+						{
+							"name": "Listar Multimedia (MediaFiles)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/media?page=1&limit=10&type=image",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"media"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "type",
+											"value": "image"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Subir Archivo Local",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"description": "Seleccionar un archivo de imagen (hasta 10MB), doc (hasta 20MB) o video (hasta 50MB)",
+											"type": "file",
+											"src": []
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/media/upload",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"media",
+										"upload"
+									]
+								},
+								"description": "Sube un archivo de forma multipart/form-data. El archivo se guardará en la carpeta correspondiente en local (/uploads/images, documents o videos) y se registrará en la base de datos."
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar Registro y Archivo",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/media/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"media",
+										"1"
+									]
+								},
+								"description": "Elimina el registro de la base de datos y borra físicamente el archivo del disco local."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Mensajes de Contacto",
+					"item": [
+						{
+							"name": "Listar Mensajes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/contact-messages?page=1&limit=10&status=new",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"contact-messages"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "status",
+											"value": "new"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Detalle Mensaje (Auto marcar Leído)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/contact-messages/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"contact-messages",
+										"1"
+									]
+								},
+								"description": "Obtiene los detalles del mensaje de contacto. Si su estado era 'new', cambia automáticamente a 'read'."
+							},
+							"response": []
+						},
+						{
+							"name": "Actualizar Estado Mensaje",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"contacted\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/contact-messages/1/status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"contact-messages",
+										"1",
+										"status"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Configuraciones",
+					"item": [
+						{
+							"name": "Listar Todas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/settings",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar por Grupo",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/settings/company",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"settings",
+										"company"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Actualizar Valor Configuración",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"value\": \"GLOBAL SERVICE S.R.L.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/settings/company.name",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"settings",
+										"company.name"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Usuarios",
+					"item": [
+						{
+							"name": "Listar Usuarios",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/admin/users?page=1&limit=10&search=Condori",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"users"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "search",
+											"value": "Condori"
+										}
+									]
+								},
+								"description": "Retorna todos los usuarios del sistema. Solo accesible por usuarios con rol 'ADMIN'."
+							},
+							"response": []
+						},
+						{
+							"name": "Crear Usuario",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Editor Juan\",\n  \"email\": \"juan@globalservice.bo\",\n  \"password\": \"editor123.\",\n  \"role\": \"EDITOR\",\n  \"active\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/users",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"users"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:4000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
